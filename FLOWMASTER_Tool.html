@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLOWMASTER - Demulsifier Audit Tool | KJO</title>
+    <style>
+        :root {
+            --primary: #1a4b8c;
+            --primary-light: #2d6bc4;
+            --primary-dark: #0d2847;
+            --accent: #00a651;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --text: #333333;
+            --text-light: #666666;
+            --border: #e0e5eb;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-section img { height: 50px; background: white; padding: 5px 10px; border-radius: 5px; }
+        .title-section h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: 1px; }
+        .title-section p { font-size: 0.85rem; opacity: 0.9; }
+        .dept-badge { background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; flex: 1; width: 100%; }
+
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .tab:hover { background: var(--bg); }
+        .tab.active { background: var(--primary); color: white; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-size: 0.85rem; color: var(--text-light); font-weight: 500; }
+
+        .input-group input {
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 75, 140, 0.1);
+        }
+
+        .input-unit { position: relative; }
+        .input-unit input { padding-right: 45px; }
+        .input-unit span {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .bpd-display {
+            font-size: 0.7rem;
+            color: var(--primary);
+            margin-top: 4px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        .bpd-display.zero { opacity: 0.4; }
+
+        .pump-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .pump-table th, .pump-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--border); }
+        .pump-table th { font-weight: 600; color: var(--text-light); font-size: 0.75rem; white-space: nowrap; }
+        .pump-table td { font-weight: 500; }
+        .pump-table .pump-name { color: var(--primary); font-weight: 600; text-align: left; }
+
+        .pump-table input {
+            width: 60px;
+            padding: 8px 5px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .pump-table input:focus { outline: none; border-color: var(--primary); }
+        .calc-cell { background: var(--bg); border-radius: 4px; padding: 6px 4px; font-weight: 600; }
+        .error-cell { font-weight: 600; font-size: 0.8rem; }
+        .error-low { color: var(--success); }
+        .error-mid { color: var(--warning); }
+        .error-high { color: var(--danger); }
+
+        .result-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .result-card .label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 8px; }
+        .result-card .value { font-size: 3rem; font-weight: 700; line-height: 1; }
+        .result-card .unit { font-size: 1rem; opacity: 0.8; margin-top: 5px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
+        .stat-item { background: var(--bg); padding: 12px; border-radius: 10px; text-align: center; }
+        .stat-item .stat-label { font-size: 0.75rem; color: var(--text-light); margin-bottom: 4px; }
+        .stat-item .stat-value { font-size: 1.2rem; font-weight: 600; color: var(--primary); }
+
+        /* === Summary split with vertical divider === */
+        .summary-split {
+            display: grid;
+            grid-template-columns: 1fr 1px 1fr;
+            gap: 14px;
+            margin-top: 15px;
+            align-items: stretch;
+        }
+        .summary-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .summary-col-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--bg);
+            margin-bottom: 4px;
+        }
+        .summary-divider {
+            background: linear-gradient(to bottom, transparent, var(--border), transparent);
+            width: 1px;
+            min-height: 100%;
+        }
+        @media (max-width: 640px) {
+            .summary-split {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .summary-divider {
+                width: 100%;
+                min-height: 1px;
+                height: 1px;
+                background: linear-gradient(to right, transparent, var(--border), transparent);
+            }
+            .summary-col-label { font-size: 0.65rem; }
+        }
+
+        .formula-card {
+            background: var(--card);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .formula-card h3 { color: var(--primary); margin-bottom: 8px; font-size: 0.95rem; }
+
+        .formula-box {
+            background: var(--primary-dark);
+            color: #00ff88;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 8px 0;
+        }
+
+        .formula-explanation { color: var(--text-light); font-size: 0.85rem; }
+        .highlight { background: #fff3cd; padding: 2px 5px; border-radius: 4px; font-weight: 500; }
+
+        .footer {
+            background: var(--primary-dark);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .footer p { margin: 4px 0; font-size: 0.8rem; opacity: 0.9; }
+        .footer .creator { font-weight: 600; font-size: 0.95rem; opacity: 1; }
+
+        .export-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px auto;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .export-btn:hover {
+            background: #008c44;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,166,81,0.3);
+        }
+
+        @media (max-width: 400px) {
+            .pump-table input { width: 50px; padding: 6px 3px; font-size: 0.85rem; }
+            .pump-table th, .pump-table td { padding: 6px 3px; font-size: 0.75rem; }
+        }
+
+        /* ========== PRINT STYLES - FIT LETTER/A4 ========== */
+        .print-report { display: none; }
+
+        @media print {
+            @page { 
+                size: A4; 
+                margin: 15mm 12mm; 
+            }
+            body * { visibility: hidden; }
+            .print-report, .print-report * { visibility: visible; }
+            .print-report {
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+        }
+
+        /* Report Styles - Fit A4/Letter */
+        .rpt { 
+            background: white; 
+            border: 2px solid var(--primary); 
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+
+        .rpt-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 20px 25px;
+            text-align: center;
+        }
+
+        .rpt-header h2 { font-size: 12px; font-weight: 400; letter-spacing: 2px; margin-bottom: 5px; }
+        .rpt-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+        .rpt-header h3 { font-size: 12px; font-weight: 400; opacity: 0.9; }
+
+        .rpt-meta {
+            background: #f0f4f8;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--primary);
+            font-size: 12px;
+        }
+
+        .rpt-body { padding: 20px 25px; }
+
+        .rpt-section { margin-bottom: 18px; }
+        .rpt-title {
+            background: var(--primary);
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+
+        .rpt-table { width: 100%; border-collapse: collapse; }
+        .rpt-table th, .rpt-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border: 1px solid #ccc;
+            font-size: 12px;
+        }
+        .rpt-table th { background: #f5f7fa; font-weight: 600; color: var(--primary); }
+        .rpt-table .val { font-weight: 600; color: var(--primary); text-align: right; }
+        .rpt-table .total { background: #e8f0f8; }
+
+        .rpt-ppm {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .rpt-ppm .label { font-size: 12px; opacity: 0.9; }
+        .rpt-ppm .value { font-size: 48px; font-weight: 700; }
+        .rpt-ppm .unit { font-size: 14px; opacity: 0.8; }
+
+        .rpt-footer {
+            background: #f5f7fa;
+            border-top: 2px solid var(--primary);
+            padding: 15px 25px;
+            text-align: right;
+        }
+
+        .rpt-footer .tool-ref {
+            display: inline-block;
+            text-align: left;
+            border-left: 3px solid var(--primary);
+            padding-left: 12px;
+        }
+
+        .rpt-footer .tool-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--primary);
+        }
+
+        .rpt-footer .tool-desc {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .rpt-footer .creator {
+            font-size: 11px;
+            color: var(--text);
+            margin-top: 5px;
+        }
+
+        .rpt-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .error-badge.low { background: #d4edda; color: #155724; }
+        .error-badge.mid { background: #fff3cd; color: #856404; }
+        .error-badge.high { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Crect fill='%231a4b8c' width='100' height='40'/%3E%3Ctext x='50' y='28' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='16'%3EKJO%3C/text%3E%3C/svg%3E" alt="KJO">
+                <div class="title-section">
+                    <h1>FLOWMASTER</h1>
+                    <p>Demulsifier Audit Tool</p>
+                </div>
+            </div>
+            <div class="dept-badge">📍 OND - Khafji Desalter</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('production', this)">🛢️ Production</div>
+            <div class="tab" onclick="showTab('pumps', this)">⚙️ P072 Pumps</div>
+            <div class="tab" onclick="showTab('ppm', this)">🧪 PPM Result</div>
+            <div class="tab" onclick="showTab('formulas', this)">📐 Formulas</div>
+        </div>
+
+        <!-- Production Tab -->
+        <div id="production" class="tab-content active">
+            <div class="card">
+                <div class="card-title">Train Flow Rates</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>TR-1</label>
+                        <div class="input-unit">
+                            <input type="number" id="tr1" value="600" min="0" oninput="calculate()">
+                            <span>m³/h</span>
+                        </div>
+                        <div class="bpd-display" id="bpd1">= 90,600 BPD</div>
+                    </div>
+                    <div class="input-group">
+                        <label>TR-2</label>
+                        <div class="input-unit">
+                            <input type="number" id="tr2" value="0" min="0" oninput="calculate()">
+                            <span>m³/h</span>
+                        </div>
+                        <div class="bpd-display zero" id="bpd2">= 0 BPD</div>
+                    </div>
+                    <div class="input-group">
+                        <label>TR-3</label>
+                        <div class="input-unit">
+                            <input type="number" id="tr3" value="700" min="0" oninput="calculate()">
+                            <span>m³/h</span>
+                        </div>
+                        <div class="bpd-display" id="bpd3">= 105,700 BPD</div>
+                    </div>
+                    <div class="input-group">
+                        <label>TR-4</label>
+                        <div class="input-unit">
+                            <input type="number" id="tr4" value="700" min="0" oninput="calculate()">
+                            <span>m³/h</span>
+                        </div>
+                        <div class="bpd-display" id="bpd4">= 105,700 BPD</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Water Outlet (P066's Total Flow)</div>
+                <div class="input-group" style="max-width: 180px;">
+                    <label>Water Flow</label>
+                    <div class="input-unit">
+                        <input type="number" id="water" value="385" min="0" oninput="calculate()">
+                        <span>m³/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Production Summary</div>
+                <div class="summary-split">
+
+                    <!-- LEFT: Crude only -->
+                    <div class="summary-col">
+                        <div class="summary-col-label">🛢️ Crude Only</div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Crude</div>
+                            <div class="stat-value" id="totalCrude">2000</div>
+                            <small>m³/h</small>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total BPD</div>
+                            <div class="stat-value" id="totalBPD">302,000</div>
+                            <small>bbl/day</small>
+                        </div>
+                    </div>
+
+                    <!-- DIVIDER -->
+                    <div class="summary-divider"></div>
+
+                    <!-- RIGHT: Crude + Water -->
+                    <div class="summary-col">
+                        <div class="summary-col-label">💧 Crude + Water</div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total + Water</div>
+                            <div class="stat-value" id="totalFlow">2385</div>
+                            <small>m³/h</small>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">MBD</div>
+                            <div class="stat-value" id="mbd">360.1</div>
+                            <small>×1000 bbl</small>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Pumps Tab -->
+        <div id="pumps" class="tab-content">
+            <div class="card">
+                <div class="card-title">P072-A,B</div>
+                <div class="input-group" style="max-width: 150px; margin-bottom: 12px;">
+                    <label>Stroke A,B</label>
+                    <div class="input-unit">
+                        <input type="number" id="strokeAB" value="77" min="1" max="100" oninput="calculate()">
+                        <span>%</span>
+                    </div>
+                </div>
+                <table class="pump-table">
+                    <thead>
+                        <tr><th>Pump</th><th>Sec</th><th>Flow</th><th>Perf</th><th>Error</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="pump-name">A</td>
+                            <td><input type="number" id="secA" value="105" min="0" oninput="calculate()"></td>
+                            <td><span class="calc-cell" id="flowA">34.3</span></td>
+                            <td><span class="calc-cell" id="perfA">82%</span></td>
+                            <td><span class="error-cell" id="errA">18%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="pump-name">B</td>
+                            <td><input type="number" id="secB" value="101" min="0" oninput="calculate()"></td>
+                            <td><span class="calc-cell" id="flowB">35.6</span></td>
+                            <td><span class="calc-cell" id="perfB">85%</span></td>
+                            <td><span class="error-cell" id="errB">15%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">P072-C,D</div>
+                <div class="input-group" style="max-width: 150px; margin-bottom: 12px;">
+                    <label>Stroke C,D</label>
+                    <div class="input-unit">
+                        <input type="number" id="strokeCD" value="100" min="1" max="100" oninput="calculate()">
+                        <span>%</span>
+                    </div>
+                </div>
+                <table class="pump-table">
+                    <thead>
+                        <tr><th>Pump</th><th>Sec</th><th>Flow</th><th>Perf</th><th>Error</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="pump-name">C</td>
+                            <td><input type="number" id="secC" value="67" min="0" oninput="calculate()"></td>
+                            <td><span class="calc-cell" id="flowC">53.7</span></td>
+                            <td><span class="calc-cell" id="perfC">99%</span></td>
+                            <td><span class="error-cell" id="errC">1%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="pump-name">D</td>
+                            <td><input type="number" id="secD" value="0" min="0" oninput="calculate()"></td>
+                            <td><span class="calc-cell" id="flowD">--</span></td>
+                            <td><span class="calc-cell" id="perfD">--</span></td>
+                            <td><span class="error-cell" id="errD">--</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Demulsifier Summary</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Demulsifier</div>
+                        <div class="stat-value" id="totalChem">123.6</div>
+                        <small>L/H</small>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">GPD</div>
+                        <div class="stat-value" id="gpd">783</div>
+                        <small>gal/day</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PPM Result Tab -->
+        <div id="ppm" class="tab-content">
+            <div class="result-card">
+                <div class="label">Demulsifier Injection Rate</div>
+                <div class="value" id="ppmValue">42.50</div>
+                <div class="unit">PPM</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Calculation Breakdown</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Flow</div>
+                        <div class="stat-value" id="sumFlow">2385</div>
+                        <small>m³/h</small>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">MBD</div>
+                        <div class="stat-value" id="sumMBD">360.1</div>
+                        <small>×1000 bbl</small>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Demulsifier</div>
+                        <div class="stat-value" id="sumChem">123.6</div>
+                        <small>L/H</small>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">GPD</div>
+                        <div class="stat-value" id="sumGPD">783</div>
+                        <small>gal/day</small>
+                    </div>
+                </div>
+            </div>
+
+            <button class="export-btn" onclick="exportPDF()">📄 Export Audit Report</button>
+        </div>
+
+        <!-- Formulas Tab -->
+        <div id="formulas" class="tab-content">
+            <div class="formula-card">
+                <h3>📊 BPD</h3>
+                <div class="formula-box">BPD = m³/h × 151</div>
+            </div>
+            <div class="formula-card">
+                <h3>📈 MBD</h3>
+                <div class="formula-box">MBD = (Total × 151) ÷ 1000</div>
+            </div>
+            <div class="formula-card">
+                <h3>⚙️ Pump Flow</h3>
+                <div class="formula-box">Flow (L/H) = 3600 ÷ Seconds</div>
+            </div>
+            <div class="formula-card">
+                <h3>📉 Performance</h3>
+                <div class="formula-box">Perf % = (Actual ÷ Expected) × 100</div>
+                <div class="formula-explanation"><span class="highlight">Expected = 54 × (Stroke% / 100)</span></div>
+            </div>
+            <div class="formula-card">
+                <h3>⚠️ Error</h3>
+                <div class="formula-box">Error % = Performance % - 100</div>
+                <div class="formula-explanation"><span class="highlight">+</span> = Over-performing | <span class="highlight">-</span> = Under-performing</div>
+            </div>
+            <div class="formula-card">
+                <h3>🧪 GPD</h3>
+                <div class="formula-box">GPD = (L/H ÷ 3.7854) × 24</div>
+            </div>
+            <div class="formula-card">
+                <h3>🎯 PPM</h3>
+                <div class="formula-box">PPM = (GPD ÷ (MBD × 42)) × 1000</div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p class="creator">Created by Fawaz Aldousari</p>
+        <p>B.N: 21747 | OND - Khafji Desalter</p>
+        <p style="margin-top: 8px; opacity: 0.7;">FLOWMASTER | Khafji Joint Operations</p>
+    </footer>
+
+    <!-- Print Report - A4/Letter Optimized -->
+    <div class="print-report">
+        <div class="rpt">
+            <div class="rpt-header">
+                <h2>KHAFJI JOINT OPERATIONS</h2>
+                <h1>DEMULSIFIER INJECTION AUDIT</h1>
+                <h3>OND - Khafji Desalter</h3>
+            </div>
+            <div class="rpt-meta">
+                <span>📅 Date: <strong id="reportDate"></strong></span>
+                <span>⏰ Time: <strong id="reportTime"></strong></span>
+            </div>
+            <div class="rpt-body">
+                <div class="rpt-cols">
+                    <!-- Left: Production -->
+                    <div class="rpt-section">
+                        <div class="rpt-title">PRODUCTION DATA</div>
+                        <table class="rpt-table">
+                            <tr><td>TR-1</td><td class="val" id="rptTr1">600</td><td>m³/h</td></tr>
+                            <tr><td>TR-2</td><td class="val" id="rptTr2">0</td><td>m³/h</td></tr>
+                            <tr><td>TR-3</td><td class="val" id="rptTr3">700</td><td>m³/h</td></tr>
+                            <tr><td>TR-4</td><td class="val" id="rptTr4">700</td><td>m³/h</td></tr>
+                            <tr><td>Water Outlet</td><td class="val" id="rptWater">385</td><td>m³/h</td></tr>
+                            <tr class="total"><td><b>Total</b></td><td class="val" id="rptTotal"><b>2385</b></td><td><b>m³/h</b></td></tr>
+                            <tr class="total"><td><b>MBD</b></td><td class="val" id="rptMBD"><b>360.1</b></td><td><b>×1000 bbl</b></td></tr>
+                        </table>
+                    </div>
+                    <!-- Right: Summary -->
+                    <div class="rpt-section">
+                        <div class="rpt-title">CALCULATION SUMMARY</div>
+                        <table class="rpt-table">
+                            <tr><td>Total Flow</td><td class="val" id="rptSumFlow">2385</td><td>m³/h</td></tr>
+                            <tr><td>MBD</td><td class="val" id="rptSumMBD">360.1</td><td>×1000 bbl</td></tr>
+                            <tr><td>Demulsifier</td><td class="val" id="rptSumChem">123.6</td><td>L/H</td></tr>
+                            <tr><td>GPD</td><td class="val" id="rptSumGPD">783</td><td>gal/day</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pumps Table -->
+                <div class="rpt-section">
+                    <div class="rpt-title">P072 DEMULSIFIER PUMPS</div>
+                    <table class="rpt-table">
+                        <tr>
+                            <th>Pump</th>
+                            <th>Stroke</th>
+                            <th>Seconds</th>
+                            <th>Flow (L/H)</th>
+                            <th>Perf %</th>
+                            <th>Error %</th>
+                        </tr>
+                        <tr>
+                            <td>A</td>
+                            <td class="val" id="rptStrokeA">77%</td>
+                            <td class="val" id="rptSecA">105</td>
+                            <td class="val" id="rptFlowA">34.3</td>
+                            <td class="val" id="rptPerfA">82%</td>
+                            <td class="val"><span class="error-badge" id="rptErrA">18%</span></td>
+                        </tr>
+                        <tr>
+                            <td>B</td>
+                            <td class="val" id="rptStrokeB">77%</td>
+                            <td class="val" id="rptSecB">101</td>
+                            <td class="val" id="rptFlowB">35.6</td>
+                            <td class="val" id="rptPerfB">85%</td>
+                            <td class="val"><span class="error-badge" id="rptErrB">15%</span></td>
+                        </tr>
+                        <tr>
+                            <td>C</td>
+                            <td class="val" id="rptStrokeC">100%</td>
+                            <td class="val" id="rptSecC">67</td>
+                            <td class="val" id="rptFlowC">53.7</td>
+                            <td class="val" id="rptPerfC">99%</td>
+                            <td class="val"><span class="error-badge" id="rptErrC">1%</span></td>
+                        </tr>
+                        <tr>
+                            <td>D</td>
+                            <td class="val" id="rptStrokeD">100%</td>
+                            <td class="val" id="rptSecD">--</td>
+                            <td class="val" id="rptFlowD">--</td>
+                            <td class="val" id="rptPerfD">--</td>
+                            <td class="val"><span class="error-badge" id="rptErrD">--</span></td>
+                        </tr>
+                        <tr class="total">
+                            <td colspan="3"><b>Total Demulsifier</b></td>
+                            <td class="val" id="rptTotalChem"><b>123.6</b></td>
+                            <td colspan="2"><b>L/H</b></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- PPM Result -->
+                <div class="rpt-ppm">
+                    <div class="label">DEMULSIFIER INJECTION RATE</div>
+                    <div class="value" id="rptPPM">42.50</div>
+                    <div class="unit">PPM (Parts Per Million)</div>
+                </div>
+            </div>
+
+            <!-- Footer - Tool Creator Reference -->
+            <div class="rpt-footer">
+                <div class="tool-ref">
+                    <div class="tool-name">FLOWMASTER</div>
+                    <div class="tool-desc">Demulsifier Audit Tool</div>
+                    <div class="creator">Created by Fawaz Aldousari | B.N: 21747</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function calculate() {
+            const tr1 = parseFloat(document.getElementById('tr1').value) || 0;
+            const tr2 = parseFloat(document.getElementById('tr2').value) || 0;
+            const tr3 = parseFloat(document.getElementById('tr3').value) || 0;
+            const tr4 = parseFloat(document.getElementById('tr4').value) || 0;
+            const water = parseFloat(document.getElementById('water').value) || 0;
+            const strokeAB = parseFloat(document.getElementById('strokeAB').value) || 100;
+            const strokeCD = parseFloat(document.getElementById('strokeCD').value) || 100;
+            const secA = parseFloat(document.getElementById('secA').value) || 0;
+            const secB = parseFloat(document.getElementById('secB').value) || 0;
+            const secC = parseFloat(document.getElementById('secC').value) || 0;
+            const secD = parseFloat(document.getElementById('secD').value) || 0;
+
+            const totalCrude = tr1 + tr2 + tr3 + tr4;
+            const totalFlow = totalCrude + water;
+            const totalBPD = totalCrude * 151;
+            const mbd = (totalFlow * 151) / 1000;
+
+            const flowA = secA > 0 ? 3600 / secA : 0;
+            const flowB = secB > 0 ? 3600 / secB : 0;
+            const flowC = secC > 0 ? 3600 / secC : 0;
+            const flowD = secD > 0 ? 3600 / secD : 0;
+
+            const expectedAB = 54 * (strokeAB / 100);
+            const expectedCD = 54 * (strokeCD / 100);
+            
+            const perfA = secA > 0 ? (flowA / expectedAB) * 100 : 0;
+            const perfB = secB > 0 ? (flowB / expectedAB) * 100 : 0;
+            const perfC = secC > 0 ? (flowC / expectedCD) * 100 : 0;
+            const perfD = secD > 0 ? (flowD / expectedCD) * 100 : 0;
+
+            // Error: positive = over-performing, negative = under-performing
+            const errA = secA > 0 ? perfA - 100 : 0;
+            const errB = secB > 0 ? perfB - 100 : 0;
+            const errC = secC > 0 ? perfC - 100 : 0;
+            const errD = secD > 0 ? perfD - 100 : 0;
+
+            const totalChem = flowA + flowB + flowC + flowD;
+            const gpd = (totalChem / 3.7854) * 24;
+            const ppm = mbd > 0 ? (gpd / (mbd * 42)) * 1000 : 0;
+
+            // Production
+            document.getElementById('totalCrude').textContent = totalCrude.toLocaleString();
+            document.getElementById('totalFlow').textContent = totalFlow.toLocaleString();
+            document.getElementById('totalBPD').textContent = totalBPD.toLocaleString();
+            document.getElementById('mbd').textContent = mbd.toFixed(1);
+
+            // Individual Train BPD
+            updateTrainBPD('bpd1', tr1);
+            updateTrainBPD('bpd2', tr2);
+            updateTrainBPD('bpd3', tr3);
+            updateTrainBPD('bpd4', tr4);
+
+            // Pumps
+            updatePump('A', secA, flowA, perfA, errA);
+            updatePump('B', secB, flowB, perfB, errB);
+            updatePump('C', secC, flowC, perfC, errC);
+            updatePump('D', secD, flowD, perfD, errD);
+
+            document.getElementById('totalChem').textContent = totalChem.toFixed(1);
+            document.getElementById('gpd').textContent = gpd.toFixed(0);
+
+            // PPM
+            document.getElementById('ppmValue').textContent = ppm.toFixed(2);
+            document.getElementById('sumFlow').textContent = totalFlow.toLocaleString();
+            document.getElementById('sumMBD').textContent = mbd.toFixed(1);
+            document.getElementById('sumChem').textContent = totalChem.toFixed(1);
+            document.getElementById('sumGPD').textContent = gpd.toFixed(0);
+
+            // Report
+            document.getElementById('rptTr1').textContent = tr1;
+            document.getElementById('rptTr2').textContent = tr2;
+            document.getElementById('rptTr3').textContent = tr3;
+            document.getElementById('rptTr4').textContent = tr4;
+            document.getElementById('rptWater').textContent = water;
+            document.getElementById('rptTotal').innerHTML = '<b>' + totalFlow + '</b>';
+            document.getElementById('rptMBD').innerHTML = '<b>' + mbd.toFixed(1) + '</b>';
+
+            document.getElementById('rptStrokeA').textContent = strokeAB + '%';
+            document.getElementById('rptStrokeB').textContent = strokeAB + '%';
+            document.getElementById('rptStrokeC').textContent = strokeCD + '%';
+            document.getElementById('rptStrokeD').textContent = strokeCD + '%';
+
+            updateRptPump('A', secA, flowA, perfA, errA);
+            updateRptPump('B', secB, flowB, perfB, errB);
+            updateRptPump('C', secC, flowC, perfC, errC);
+            updateRptPump('D', secD, flowD, perfD, errD);
+
+            document.getElementById('rptTotalChem').innerHTML = '<b>' + totalChem.toFixed(1) + '</b>';
+            document.getElementById('rptPPM').textContent = ppm.toFixed(2);
+            document.getElementById('rptSumFlow').textContent = totalFlow;
+            document.getElementById('rptSumMBD').textContent = mbd.toFixed(1);
+            document.getElementById('rptSumChem').textContent = totalChem.toFixed(1);
+            document.getElementById('rptSumGPD').textContent = gpd.toFixed(0);
+        }
+
+        function updatePump(id, sec, flow, perf, err) {
+            const flowEl = document.getElementById('flow' + id);
+            const perfEl = document.getElementById('perf' + id);
+            const errEl = document.getElementById('err' + id);
+
+            flowEl.textContent = sec > 0 ? flow.toFixed(1) : '--';
+            perfEl.textContent = sec > 0 ? perf.toFixed(0) + '%' : '--';
+            
+            // Show error with + or - sign
+            if (sec > 0) {
+                const sign = err >= 0 ? '+' : '';
+                errEl.textContent = sign + err.toFixed(0) + '%';
+            } else {
+                errEl.textContent = '--';
+            }
+
+            if (sec === 0) perfEl.style.color = '#999';
+            else if (perf >= 90) perfEl.style.color = '#28a745';
+            else if (perf >= 70) perfEl.style.color = '#cc8800';
+            else perfEl.style.color = '#dc3545';
+
+            // Color based on error magnitude
+            const absErr = Math.abs(err);
+            if (sec === 0) errEl.className = 'error-cell';
+            else if (absErr <= 10) errEl.className = 'error-cell error-low';
+            else if (absErr <= 25) errEl.className = 'error-cell error-mid';
+            else errEl.className = 'error-cell error-high';
+        }
+
+        function updateTrainBPD(id, m3h) {
+            const el = document.getElementById(id);
+            const bpd = m3h * 151;
+            if (m3h > 0) {
+                el.textContent = '= ' + bpd.toLocaleString() + ' BPD';
+                el.className = 'bpd-display';
+            } else {
+                el.textContent = '= 0 BPD';
+                el.className = 'bpd-display zero';
+            }
+        }
+
+        function updateRptPump(id, sec, flow, perf, err) {
+            document.getElementById('rptSec' + id).textContent = sec > 0 ? sec : '--';
+            document.getElementById('rptFlow' + id).textContent = sec > 0 ? flow.toFixed(1) : '--';
+            document.getElementById('rptPerf' + id).textContent = sec > 0 ? perf.toFixed(0) + '%' : '--';
+            
+            const errEl = document.getElementById('rptErr' + id);
+            
+            // Show error with + or - sign
+            if (sec > 0) {
+                const sign = err >= 0 ? '+' : '';
+                errEl.textContent = sign + err.toFixed(0) + '%';
+            } else {
+                errEl.textContent = '--';
+            }
+            
+            // Color based on error magnitude
+            const absErr = Math.abs(err);
+            if (sec === 0) errEl.className = 'error-badge';
+            else if (absErr <= 10) errEl.className = 'error-badge low';
+            else if (absErr <= 25) errEl.className = 'error-badge mid';
+            else errEl.className = 'error-badge high';
+        }
+
+        function exportPDF() {
+            const now = new Date();
+            document.getElementById('reportDate').textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            document.getElementById('reportTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            window.print();
+        }
+
+        calculate();
+    </script>
+</body>
+</html>
