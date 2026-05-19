@@ -165,6 +165,99 @@
         .pump-table td { font-weight: 500; }
         .pump-table .pump-name { color: var(--primary); font-weight: 600; text-align: left; }
 
+        /* === Expected / Actual indicator tags === */
+        .hint-tag {
+            display: inline-block;
+            background: #fff3cd;
+            color: #8a6d3b;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        /* === Expected reference above the actual column headers === */
+        .expected-header-row th {
+            background: transparent !important;
+            border-bottom: none !important;
+            padding: 2px 6px 6px 6px !important;
+            text-transform: none !important;
+            font-weight: normal !important;
+            color: inherit !important;
+            letter-spacing: 0 !important;
+        }
+        .expected-above {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69a 100%);
+            border: 1px solid #d49a2a;
+            border-radius: 6px;
+            padding: 5px 10px;
+            min-width: 70px;
+        }
+        .expected-tag {
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #8a6d3b;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+        .expected-num {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #8a6d3b;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .expected-num small {
+            font-size: 0.6rem;
+            font-weight: 600;
+            opacity: 0.75;
+            margin-left: 2px;
+        }
+        @media (max-width: 640px) {
+            .expected-above { padding: 3px 6px; min-width: 55px; }
+            .expected-tag { font-size: 0.48rem; letter-spacing: 0.5px; }
+            .expected-num { font-size: 0.78rem; }
+            .expected-num small { font-size: 0.52rem; }
+        }
+
+        .th-tag {
+            display: inline-block;
+            background: #e8f4fd;
+            color: var(--primary);
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 3px;
+            vertical-align: middle;
+        }
+        .field-hint {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+        .field-hint b {
+            color: #8a6d3b;
+            font-weight: 600;
+            font-style: normal;
+        }
+        .table-note {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 8px;
+            font-style: italic;
+            opacity: 0.85;
+        }
+
         .pump-table input {
             width: 60px;
             padding: 8px 5px;
@@ -264,6 +357,22 @@
 
         .formula-explanation { color: var(--text-light); font-size: 0.85rem; }
         .highlight { background: #fff3cd; padding: 2px 5px; border-radius: 4px; font-weight: 500; }
+
+        .formula-note {
+            color: var(--text-light);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+        }
+        .formula-note b {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        @media (max-width: 640px) {
+            .formula-note { font-size: 0.78rem; }
+        }
 
         .footer {
             background: var(--primary-dark);
@@ -455,10 +564,10 @@
 
     <div class="container">
         <div class="tabs">
-            <div class="tab active" onclick="showTab('production', this)">🛢️ Production</div>
-            <div class="tab" onclick="showTab('pumps', this)">⚙️ P072 Pumps</div>
-            <div class="tab" onclick="showTab('ppm', this)">🧪 PPM Result</div>
-            <div class="tab" onclick="showTab('formulas', this)">📐 Formulas</div>
+            <div class="tab active" onclick="showTab('production')">🛢️ Production</div>
+            <div class="tab" onclick="showTab('pumps')">⚙️ P072 Pumps</div>
+            <div class="tab" onclick="showTab('ppm')">🧪 PPM Result</div>
+            <div class="tab" onclick="showTab('formulas')">📐 Formulas</div>
         </div>
 
         <!-- Production Tab -->
@@ -557,8 +666,8 @@
         <div id="pumps" class="tab-content">
             <div class="card">
                 <div class="card-title">P072-A,B</div>
-                <div class="input-group" style="max-width: 150px; margin-bottom: 12px;">
-                    <label>Stroke A,B</label>
+                <div class="input-group" style="max-width: 200px; margin-bottom: 14px;">
+                    <label>Stroke A,B <span class="th-tag">ACTUAL</span></label>
                     <div class="input-unit">
                         <input type="number" id="strokeAB" value="77" min="1" max="100" oninput="calculate()">
                         <span>%</span>
@@ -566,7 +675,20 @@
                 </div>
                 <table class="pump-table">
                     <thead>
-                        <tr><th>Pump</th><th>Sec</th><th>Flow</th><th>Perf</th><th>Error</th></tr>
+                        <tr class="expected-header-row">
+                            <th></th>
+                            <th><div class="expected-above"><span class="expected-tag">EXPECTED</span><span class="expected-num"><span id="expectedDurAB">86.6</span><small>sec</small></span></div></th>
+                            <th><div class="expected-above"><span class="expected-tag">EXPECTED</span><span class="expected-num"><span id="expectedAB">41.6</span><small>L/H</small></span></div></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        <tr>
+                            <th>Pump</th>
+                            <th>Sec <span class="th-tag">ACTUAL</span></th>
+                            <th>Flow <span class="th-tag">ACTUAL</span></th>
+                            <th>Perf</th>
+                            <th>Error</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr>
@@ -585,12 +707,13 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="table-note">Measured 1 L stroke time from the field</div>
             </div>
 
             <div class="card">
                 <div class="card-title">P072-C,D</div>
-                <div class="input-group" style="max-width: 150px; margin-bottom: 12px;">
-                    <label>Stroke C,D</label>
+                <div class="input-group" style="max-width: 200px; margin-bottom: 14px;">
+                    <label>Stroke C,D <span class="th-tag">ACTUAL</span></label>
                     <div class="input-unit">
                         <input type="number" id="strokeCD" value="100" min="1" max="100" oninput="calculate()">
                         <span>%</span>
@@ -598,7 +721,20 @@
                 </div>
                 <table class="pump-table">
                     <thead>
-                        <tr><th>Pump</th><th>Sec</th><th>Flow</th><th>Perf</th><th>Error</th></tr>
+                        <tr class="expected-header-row">
+                            <th></th>
+                            <th><div class="expected-above"><span class="expected-tag">EXPECTED</span><span class="expected-num"><span id="expectedDurCD">66.7</span><small>sec</small></span></div></th>
+                            <th><div class="expected-above"><span class="expected-tag">EXPECTED</span><span class="expected-num"><span id="expectedCD">54.0</span><small>L/H</small></span></div></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        <tr>
+                            <th>Pump</th>
+                            <th>Sec <span class="th-tag">ACTUAL</span></th>
+                            <th>Flow <span class="th-tag">ACTUAL</span></th>
+                            <th>Perf</th>
+                            <th>Error</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr>
@@ -617,6 +753,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="table-note">Measured 1 L stroke time from the field</div>
             </div>
 
             <div class="card">
@@ -678,32 +815,39 @@
             <div class="formula-card">
                 <h3>📊 BPD</h3>
                 <div class="formula-box">BPD = m³/h × 151</div>
+                <div class="formula-note">Converts hourly flow rate (m³/h) to <b>Barrels Per Day</b>.</div>
             </div>
             <div class="formula-card">
                 <h3>📈 MBD</h3>
                 <div class="formula-box">MBD = (Total × 151) ÷ 1000</div>
+                <div class="formula-note">Converts total flow to <b>Thousand Barrels per Day</b> — used for reporting plant throughput.</div>
             </div>
             <div class="formula-card">
                 <h3>⚙️ Pump Flow</h3>
                 <div class="formula-box">Flow (L/H) = 3600 ÷ Seconds</div>
+                <div class="formula-note">Measures pump output in <b>Liters per Hour</b> from one-liter stroke time.</div>
             </div>
             <div class="formula-card">
                 <h3>📉 Performance</h3>
                 <div class="formula-box">Perf % = (Actual ÷ Expected) × 100</div>
                 <div class="formula-explanation"><span class="highlight">Expected = 54 × (Stroke% / 100)</span></div>
+                <div class="formula-note">Compares the pump's <b>actual flow</b> against its <b>expected design flow</b> at the same stroke setting.</div>
             </div>
             <div class="formula-card">
                 <h3>⚠️ Error</h3>
                 <div class="formula-box">Error % = Performance % - 100</div>
                 <div class="formula-explanation"><span class="highlight">+</span> = Over-performing | <span class="highlight">-</span> = Under-performing</div>
+                <div class="formula-note">Shows how far the pump deviates from its rated performance — guides maintenance action.</div>
             </div>
             <div class="formula-card">
                 <h3>🧪 GPD</h3>
                 <div class="formula-box">GPD = (L/H ÷ 3.7854) × 24</div>
+                <div class="formula-note">Converts pump flow to <b>US Gallons per Day</b>. The constant <b>3.7854</b> = 1 US gallon in liters.</div>
             </div>
             <div class="formula-card">
                 <h3>🎯 PPM</h3>
                 <div class="formula-box">PPM = (GPD ÷ (MBD × 42)) × 1000</div>
+                <div class="formula-note">Calculates <b>demulsifier concentration</b> in crude oil. <b>42</b> = US gallons per barrel.</div>
             </div>
         </div>
     </div>
@@ -825,11 +969,11 @@
     </div>
 
     <script>
-        function showTab(tabId, el) {
+        function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            el.classList.add('active');
+            event.target.classList.add('active');
         }
 
         function calculate() {
@@ -857,6 +1001,20 @@
 
             const expectedAB = 54 * (strokeAB / 100);
             const expectedCD = 54 * (strokeCD / 100);
+
+            // Expected Duration = 3600 / expected flow (seconds to fill 1 L)
+            const expectedDurAB = expectedAB > 0 ? 3600 / expectedAB : 0;
+            const expectedDurCD = expectedCD > 0 ? 3600 / expectedCD : 0;
+
+            // Display expected flow + duration values
+            var expABEl = document.getElementById('expectedAB');
+            var expCDEl = document.getElementById('expectedCD');
+            if (expABEl) expABEl.textContent = expectedAB.toFixed(1);
+            if (expCDEl) expCDEl.textContent = expectedCD.toFixed(1);
+            var expDurABEl = document.getElementById('expectedDurAB');
+            var expDurCDEl = document.getElementById('expectedDurCD');
+            if (expDurABEl) expDurABEl.textContent = expectedDurAB > 0 ? expectedDurAB.toFixed(1) : '--';
+            if (expDurCDEl) expDurCDEl.textContent = expectedDurCD > 0 ? expectedDurCD.toFixed(1) : '--';
             
             const perfA = secA > 0 ? (flowA / expectedAB) * 100 : 0;
             const perfB = secB > 0 ? (flowB / expectedAB) * 100 : 0;
