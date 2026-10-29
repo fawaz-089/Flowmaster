@@ -20,7 +20,7 @@
 
  > INITIATING STARTUP SEQUENCE............................. [ OK ]
  > LOADING OS: PMCR-TEC INDUSTRIAL v4.1.2.................. [ OK ]
- > SYSTEM CLOCK: ████.██.██ // [CONFIDENTIAL].......... [ --- ]
+ > SYSTEM CLOCK: ████.██.██ // [CONFIDENTIAL / ETC]....... [ --- ]
  > ESTABLISHING SECURE LINK TO PMCR 21*BOEING............. [ OK ]
  > DECRYPTING OVERSEER'S PERSONAL ARCHIVE................. [ OK ]
  > ACCESS GRANTED.
@@ -1699,6 +1699,7 @@
             box-shadow: 0 4px 12px rgba(0,166,81,0.3);
         }
 
+
         @media (max-width: 400px) {
             .pump-table input { width: 50px; padding: 6px 3px; font-size: 0.85rem; }
             .pump-table th, .pump-table td { padding: 6px 3px; font-size: 0.75rem; }
@@ -1835,9 +1836,97 @@
         .error-badge.low { background: #d4edda; color: #155724; }
         .error-badge.mid { background: #fff3cd; color: #856404; }
         .error-badge.high { background: #f8d7da; color: #721c24; }
+
+        /* ═══ K*O CRT Login ═══ */
+        .rc-screen {
+            position: fixed; inset: 0;
+            background: #000;
+            color: #4af626;
+            font-family: 'Courier New', 'Consolas', 'Menlo', monospace;
+            font-size: 15px; line-height: 1.5;
+            z-index: 99999;
+            overflow: auto;
+            padding: 32px 20px;
+            text-shadow: 0 0 2px #4af626, 0 0 5px rgba(74,246,38,0.35);
+        }
+        .rc-screen::before {
+            content: ''; position: fixed; inset: 0;
+            pointer-events: none; z-index: 100000;
+            background: repeating-linear-gradient(180deg,
+                rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.18) 3px);
+        }
+        .rc-screen::after {
+            content: ''; position: fixed; inset: 0;
+            pointer-events: none; z-index: 100001;
+            background: radial-gradient(ellipse at center,
+                transparent 55%, rgba(0,0,0,0.5));
+        }
+        .rc-crt { max-width: 680px; margin: 0 auto; }
+        .rc-header { margin-bottom: 18px; }
+        .rc-boot {
+            margin: 0; padding: 0;
+            font: inherit; color: inherit;
+            white-space: pre-wrap;
+            min-height: 180px;
+        }
+        .rc-line { margin: 4px 0; }
+        .rc-input-row {
+            display: flex; align-items: center;
+            gap: 8px; margin-top: 10px;
+        }
+        .rc-chev { color: #4af626; }
+        .rc-input {
+            background: transparent; border: none;
+            color: #4af626; font: inherit;
+            outline: none; letter-spacing: 3px;
+            caret-color: transparent;
+            width: 220px; padding: 0;
+            text-shadow: inherit;
+        }
+        .rc-cursor { animation: rc-blink 1s step-end infinite; }
+        @keyframes rc-blink { 50% { opacity: 0; } }
+        .rc-status { margin-top: 14px; min-height: 24px; }
+        .rc-denied {
+            color: #ff5252;
+            text-shadow: 0 0 2px #ff5252, 0 0 5px rgba(255,82,82,0.4);
+        }
+        .rc-granted { color: #4af626; }
+        .rc-lock {
+            color: #ff5252; font-weight: 700;
+            text-shadow: 0 0 3px #ff5252;
+        }
+        @media (max-width: 480px) {
+            .rc-screen { font-size: 13px; padding: 24px 14px; }
+            .rc-input { width: 150px; letter-spacing: 2px; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- ═══ K*O Login Terminal ═══ -->
+    <div id="loginScreen" class="rc-screen">
+        <div class="rc-crt">
+            <div class="rc-header">
+                <div>K*O INDUSTRIES UNIFIED OPERATING SYSTEM</div>
+                <div>COPYRIGHT 2075-2077 K*O INDUSTRIES</div>
+                <div>-Server 1-</div>
+            </div>
+            <pre class="rc-boot" id="rcBoot"></pre>
+            <div class="rc-prompt" id="rcPrompt" style="display:none;">
+                <div class="rc-line">ENTER PASSWORD NOW</div>
+                <div class="rc-line"><span id="rcAttempts">4</span> ATTEMPT(S) LEFT:
+                    <span id="rcDots">█ █ █ █</span></div>
+                <div class="rc-input-row">
+                    <span class="rc-chev">&gt;</span>
+                    <input type="password" id="rcInput" class="rc-input"
+                           autocomplete="off" inputmode="numeric" maxlength="20">
+                    <span class="rc-cursor">_</span>
+                </div>
+                <div class="rc-status" id="rcStatus"></div>
+            </div>
+        </div>
+    </div>
+
 
     <header class="header">
         <div class="header-content">
@@ -2550,9 +2639,9 @@
             <!-- Footer - Tool Creator Reference -->
             <div class="rpt-footer">
                 <div class="tool-ref">
-                    <div class="tool-name">FLOWMASTER</div>
-                    <div class="tool-desc">Demulsifier Audit Tool</div>
+                    <div class="tool-name">Demulsifier Audit Tool</div>
                     <div class="creator">Created by Fawaz Aldousari | B.N: 21747</div>
+                    <div class="tool-desc">OND — Khafji Desalter · Khafji Joint Operations</div>
                 </div>
             </div>
         </div>
@@ -2938,6 +3027,118 @@
         }
 
         calculate();
+    </script>
+    <!-- ═══ K*O Login Terminal Logic ═══ -->
+    <script>
+    (function() {
+        const CORRECT = '21747';
+        const AUTH_KEY = 'pmcr_auth_v1';
+        const ATTEMPT_KEY = 'pmcr_attempts_v1';
+
+        const screen = document.getElementById('loginScreen');
+        if (!screen) return;
+
+        // No persistence — password required on every refresh
+
+        const bootEl = document.getElementById('rcBoot');
+        const promptEl = document.getElementById('rcPrompt');
+        const inputEl = document.getElementById('rcInput');
+        const statusEl = document.getElementById('rcStatus');
+        const attemptsEl = document.getElementById('rcAttempts');
+        const dotsEl = document.getElementById('rcDots');
+
+        let attempts = 4;
+        try {
+            const s = sessionStorage.getItem(ATTEMPT_KEY);
+            if (s !== null) attempts = Math.max(0, parseInt(s, 10) || 0);
+        } catch(e) {}
+
+        const bootLines = [
+            '',
+            '>SET TERMINAL/INQUIRE',
+            '',
+            'RIT-V300',
+            '',
+            '>SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F',
+            '>SET HALT RESTART/MAINT',
+            '',
+            'Initializing K*O Industries(TM) MF Boot Agent v2.3.0',
+            'RETROS BIOS',
+            'RBIOS-4.02.08.00 52EE5.E7.E8',
+            'Copyright 2201-2203 K*O Ind.',
+            'Uppermem: 64 KB',
+            'Root (5A8)',
+            'Maintenance Mode',
+            '',
+            '>RUN DEBUG/ACCOUNTS.F',
+            ''
+        ];
+
+        let i = 0;
+        function typeBoot() {
+            if (i < bootLines.length) {
+                bootEl.textContent += bootLines[i] + '\n';
+                i++;
+                setTimeout(typeBoot, i < 5 ? 180 : 55);
+            } else {
+                promptEl.style.display = 'block';
+                renderAttempts();
+                if (attempts <= 0) {
+                    lockout();
+                } else {
+                    setTimeout(() => inputEl.focus(), 120);
+                }
+            }
+        }
+
+        function renderAttempts() {
+            attemptsEl.textContent = attempts;
+            var filled = '';
+            for (var k = 0; k < attempts; k++) filled += (k ? ' ' : '') + '█';
+            var empty = '';
+            for (var k = 0; k < (4 - attempts); k++) empty += (k || attempts ? ' ' : '') + '░';
+            dotsEl.textContent = filled + empty;
+        }
+
+        function lockout() {
+            inputEl.disabled = true;
+            statusEl.innerHTML =
+                '<div class="rc-lock">!!! TERMINAL LOCKED !!!</div>' +
+                '<div class="rc-lock">LOCKOUT ENGAGED - CONTACT ADMIN</div>' +
+                '<div class="rc-lock">REFRESH PAGE TO RETRY</div>';
+        }
+
+        inputEl.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const val = inputEl.value.trim();
+            if (val === CORRECT) {
+                statusEl.innerHTML =
+                    '<div class="rc-granted">ACCESS GRANTED.</div>' +
+                    '<div class="rc-granted">LOADING TERMINAL...</div>';
+                try { sessionStorage.removeItem(ATTEMPT_KEY); } catch(e) {}
+                setTimeout(function() {
+                    screen.style.transition = 'opacity 0.6s';
+                    screen.style.opacity = '0';
+                    setTimeout(function() { screen.remove(); }, 650);
+                }, 900);
+            } else {
+                attempts--;
+                try { sessionStorage.setItem(ATTEMPT_KEY, String(attempts)); } catch(e) {}
+                renderAttempts();
+                inputEl.value = '';
+                if (attempts <= 0) {
+                    lockout();
+                } else {
+                    statusEl.innerHTML =
+                        '<div class="rc-denied">ACCESS DENIED</div>' +
+                        '<div class="rc-denied">' + attempts + ' ATTEMPT(S) REMAINING</div>';
+                }
+            }
+        });
+
+        typeBoot();
+    })();
     </script>
 </body>
 </html>
