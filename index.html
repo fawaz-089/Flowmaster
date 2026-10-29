@@ -3055,29 +3055,35 @@
     <!-- ═══ K*O Login Terminal Logic ═══ -->
     <script>
     (function() {
-        const CORRECT = '21747';
-        const AUTH_KEY = 'pmcr_auth_v1';
-        const ATTEMPT_KEY = 'pmcr_attempts_v1';
+        var CORRECT = '21747';
+        var ATTEMPT_KEY = 'pmcr_attempts_v1';
 
-        const screen = document.getElementById('loginScreen');
-        if (!screen) return;
+        var loginEl = document.getElementById('loginScreen');
+        if (!loginEl) return;
 
         // No persistence — password required on every refresh
 
-        const bootEl = document.getElementById('rcBoot');
-        const promptEl = document.getElementById('rcPrompt');
-        const inputEl = document.getElementById('rcInput');
-        const statusEl = document.getElementById('rcStatus');
-        const attemptsEl = document.getElementById('rcAttempts');
-        const dotsEl = document.getElementById('rcDots');
+        var bootEl = document.getElementById('rcBoot');
+        var promptEl = document.getElementById('rcPrompt');
+        var inputEl = document.getElementById('rcInput');
+        var statusEl = document.getElementById('rcStatus');
+        var attemptsEl = document.getElementById('rcAttempts');
+        var dotsEl = document.getElementById('rcDots');
+        var submitBtn = document.getElementById('rcSubmit');
 
-        let attempts = 4;
+        if (!bootEl || !promptEl || !inputEl || !statusEl || !attemptsEl || !dotsEl) {
+            // Required element missing — remove overlay so the tool is still usable
+            loginEl.remove();
+            return;
+        }
+
+        var attempts = 4;
         try {
-            const s = sessionStorage.getItem(ATTEMPT_KEY);
+            var s = sessionStorage.getItem(ATTEMPT_KEY);
             if (s !== null) attempts = Math.max(0, parseInt(s, 10) || 0);
         } catch(e) {}
 
-        const bootLines = [
+        var bootLines = [
             '',
             '>SET TERMINAL/INQUIRE',
             '',
@@ -3098,7 +3104,7 @@
             ''
         ];
 
-        let i = 0;
+        var i = 0;
         function typeBoot() {
             if (i < bootLines.length) {
                 bootEl.textContent += bootLines[i] + '\n';
@@ -3110,7 +3116,7 @@
                 if (attempts <= 0) {
                     lockout();
                 } else {
-                    setTimeout(() => inputEl.focus(), 120);
+                    setTimeout(function() { try { inputEl.focus(); } catch(e) {} }, 120);
                 }
             }
         }
@@ -3124,8 +3130,6 @@
             dotsEl.textContent = filled + empty;
         }
 
-        const submitBtn = document.getElementById('rcSubmit');
-
         function lockout() {
             inputEl.disabled = true;
             if (submitBtn) submitBtn.disabled = true;
@@ -3137,9 +3141,50 @@
 
         function submitPassword() {
             if (inputEl.disabled) return;
-            const val = inputEl.value.trim();
+            var val = inputEl.value.trim();
             if (val === CORRECT) {
                 statusEl.innerHTML =
                     '<div class="rc-granted">ACCESS GRANTED.</div>' +
                     '<div class="rc-granted">LOADING TERMINAL...</div>';
-                try { sessionStorage.removeIt
+                try { sessionStorage.removeItem(ATTEMPT_KEY); } catch(e) {}
+                inputEl.disabled = true;
+                if (submitBtn) submitBtn.disabled = true;
+                setTimeout(function() {
+                    loginEl.style.transition = 'opacity 0.6s';
+                    loginEl.style.opacity = '0';
+                    setTimeout(function() { loginEl.remove(); }, 650);
+                }, 900);
+            } else {
+                attempts--;
+                try { sessionStorage.setItem(ATTEMPT_KEY, String(attempts)); } catch(e) {}
+                renderAttempts();
+                inputEl.value = '';
+                if (attempts <= 0) {
+                    lockout();
+                } else {
+                    statusEl.innerHTML =
+                        '<div class="rc-denied">ACCESS DENIED</div>' +
+                        '<div class="rc-denied">' + attempts + ' ATTEMPT(S) REMAINING</div>';
+                }
+            }
+        }
+
+        inputEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitPassword();
+            }
+        });
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                submitPassword();
+            });
+        }
+
+        typeBoot();
+    })();
+    </script>
+</body>
+</html>
